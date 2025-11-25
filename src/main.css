@@ -1,0 +1,82 @@
+:root {
+  --brand-blue: #1a73e8;
+  --brand-bg-secondary: #f1f3f4; /* Google Gray */
+  --radius-md: 8px;
+  --shadow-sm: 0 1px 2px rgba(60,64,67,0.3);
+}
+
+body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f8f9fa; overflow: hidden; }
+
+/* Sidebar Styling */
+.sidebar {
+  background-color: var(--brand-blue);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.brand-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 32px;
+  padding-left: 12px;
+}
+
+.nav-item {
+  display: block;
+  padding: 12px 16px;
+  margin-bottom: 4px;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.nav-item:hover { background-color: rgba(255,255,255,0.1); }
+
+/* The Active State (Cut-out effect) */
+.nav-item.router-link-active {
+  background-color: white;
+  color: var(--brand-blue);
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Layout & Header */
+.top-header {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Quick Actions Bar (Clean, no text label) */
+.quick-actions-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--brand-bg-secondary);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: flex-end; /* Buttons to the right */
+  gap: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.action-btn {
+  background: white;
+  color: var(--brand-blue);
+  border: 1px solid #dadce0;
+  padding: 8px 16px;
+  border-radius: 20px; /* Pill shape */
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: 0.2s;
+}
+.action-btn:hover { background: #f1f3f4; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.btn-collapse { background: #e94746; color: white; border: none; }
