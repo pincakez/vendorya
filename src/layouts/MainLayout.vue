@@ -8,14 +8,21 @@ const route = useRoute();
 const isSidebarCollapsed = ref(false);
 const isActionsCollapsed = ref(false);
 const sidebarNav = ref(null);
-const subMenuBar = ref(null); // Ref for the sub-menu container
+const subMenuBar = ref(null);
 
 // Animation Refs
-const activeIndicatorStyle = ref({ top: '0px', opacity: 0 }); // Sidebar Elevator
-const sliderStyle = ref({ left: '0px', width: '0px', opacity: 0 }); // Sub-menu Slider
+const activeIndicatorStyle = ref({ top: '0px', opacity: 0 });
+const sliderStyle = ref({ left: '0px', width: '0px', opacity: 0 });
 
 const toggleSidebar = () => isSidebarCollapsed.value = !isSidebarCollapsed.value;
 const toggleActions = () => isActionsCollapsed.value = !isActionsCollapsed.value;
+
+// --- SCROLL LOGIC (Auto Collapse) ---
+const handleScroll = (e) => {
+  if (e.target.scrollTop > 50 && !isActionsCollapsed.value) {
+    isActionsCollapsed.value = true;
+  }
+};
 
 const isActive = (path) => {
   if (path === '/') {
@@ -29,7 +36,7 @@ const currentSubMenus = computed(() => {
   return activeParent ? activeParent.subMenus : [];
 });
 
-// --- 1. SIDEBAR ELEVATOR LOGIC ---
+// --- ANIMATION UPDATES ---
 const updateElevator = async () => {
   await nextTick();
   if (!sidebarNav.value) return;
@@ -41,7 +48,6 @@ const updateElevator = async () => {
   }
 };
 
-// --- 2. SUB-MENU SLIDER LOGIC ---
 const updateSlider = async () => {
   await nextTick();
   if (!subMenuBar.value) return;
@@ -57,7 +63,6 @@ const updateSlider = async () => {
   }
 };
 
-// Watch route to trigger animations
 watch(() => route.path, () => {
   updateElevator();
   updateSlider();
@@ -66,7 +71,7 @@ watch(() => route.path, () => {
 
 <template>
   <div class="app-layout">
-    <!-- SIDEBAR (Keep existing) -->
+    <!-- SIDEBAR -->
     <aside :class="['sidebar', { collapsed: isSidebarCollapsed }]">
       <div class="logo-area">
         <img v-if="!isSidebarCollapsed" src="https://i.ibb.co/9kVzWCh0/vendorya-180x54.png" alt="Vendorya" class="logo-main">
@@ -92,13 +97,12 @@ watch(() => route.path, () => {
       </button>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    <!-- MAIN WRAPPER -->
     <div class="main-wrapper">
       <header class="top-header">
         <div class="header-left">Header Content (Search, Profile)</div>
       </header>
 
-      <!-- SUB-MENU BAR (Updated with Slider) -->
       <div class="sub-menu-bar" v-if="currentSubMenus.length > 0" ref="subMenuBar">
         <RouterLink 
           v-for="(sub, index) in currentSubMenus" 
@@ -108,22 +112,27 @@ watch(() => route.path, () => {
         >
           {{ sub.label }}
         </RouterLink>
-        <!-- THE MAGIC LINE -->
         <div class="sliding-line" :style="sliderStyle"></div>
       </div>
 
-      <main class="content-scrollable">
+      <!-- CONTENT AREA -->
+      <main class="content-scrollable" @scroll="handleScroll">
+        
+        <!-- QUICK ACTIONS (Floating Bubble) -->
         <div class="quick-actions-container">
-          <div v-if="!isActionsCollapsed" class="actions-group">
-            <button class="action-btn"><PhPlus weight="bold"/> New Invoice</button>
-            <button class="action-btn"><PhPlus weight="bold"/> New Supplier</button>
-            <button class="action-btn"><PhPlus weight="bold"/> New Item</button>
-          </div>
+          <TransitionGroup name="bubble" tag="div" class="actions-group">
+            <button v-if="!isActionsCollapsed" key="inv" class="action-btn"><PhPlus weight="bold"/> New Invoice</button>
+            <button v-if="!isActionsCollapsed" key="sup" class="action-btn"><PhPlus weight="bold"/> New Supplier</button>
+            <button v-if="!isActionsCollapsed" key="itm" class="action-btn"><PhPlus weight="bold"/> New Item</button>
+          </TransitionGroup>
+          
           <button @click="toggleActions" class="collapse-btn">
             <PhCaretRight v-if="isActionsCollapsed" />
             <PhCaretLeft v-else />
           </button>
         </div>
+
+        <!-- PAGE VIEW -->
         <div class="page-content">
           <RouterView v-slot="{ Component }">
             <Transition name="fade-slide" mode="out-in">
