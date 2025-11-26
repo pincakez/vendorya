@@ -12,6 +12,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@phosphor-icons/vue": "^2.2.1",
+    "@tanstack/table-core": "^8.21.3",
+    "@tanstack/vue-table": "^8.21.3",
     "pinia": "^3.0.3",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3"

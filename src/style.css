@@ -195,7 +195,62 @@ body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--brand-b
 .quick-actions-container.collapsed .collapse-btn { transform: rotate(180deg); } /* Rotate 180 degrees when collapsed */
 
 /* --- PAGE CONTENT --- */
-.page-content { padding: 24px; }
+.page-content { padding: 12px 24px; } /* Reduced top padding */
 .fade-slide-enter-active, .fade-slide-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .fade-slide-enter-from { opacity: 0; transform: translateY(10px); }
 .fade-slide-leave-to { opacity: 0; transform: translateY(-10px); }
+
+/* --- TanStack Table Styles --- */
+.products-container {
+  padding: 0; /* Removed padding to bring content closer to sub-menu */
+}
+
+.table-wrapper {
+  overflow-x: auto; /* Enable horizontal scrolling for wide tables */
+  margin-top: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--brand-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.201);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: var(--brand-text);
+  min-width: 700px; /* Ensure table has a minimum width for scrolling */
+}
+
+.data-table thead {
+  background-color: var(--brand-blue); /* Use brand-blue for header background */
+  position: sticky;
+  top: 0;
+  z-index: 2; /* Keep header sticky on scroll */
+}
+
+.data-table th {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 600;
+  color: var(--brand-bg); /* Use brand-bg for header text */
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(var(--brand-blue), 0.05); /* Light hover effect */
+}
+
+.data-table td {
+  padding: 10px 15px;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
