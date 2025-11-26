@@ -12,42 +12,15 @@
       </div>
     </div>
 
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-            <th
-              v-for="header in headerGroup.headers"
-              :key="header.id"
-              :colSpan="header.colSpan"
-              :style="{ width: header.getSize() + 'px' }"
-            >
-              <template v-if="!header.isPlaceholder">
-                {{ header.column.columnDef.header }}
-              </template>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in table.getRowModel().rows" :key="row.id">
-            <td v-for="cell in row.getVisibleCells()" :key="cell.id">
-              {{ cell.getValue() }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- Use the reusable BaseDataGrid component -->
+    <BaseDataGrid :data="data" :columns="columns" :globalFilterInput="globalFilter" />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import {
-  useVueTable,
-  createColumnHelper,
-  getCoreRowModel,
-  getFilteredRowModel,
-} from '@tanstack/vue-table';
+import BaseDataGrid from '../components/BaseDataGrid.vue';
+import { createColumnHelper } from '@tanstack/vue-table';
 
 const columnHelper = createColumnHelper();
 
@@ -147,9 +120,6 @@ const columns = [
 // Global filter state
 const filterInput = ref(''); // Use a separate ref for input
 const globalFilter = ref(''); // This will be the actual filter value for TanStack
-// Column sizing state - removed completely
-// const columnSizing = ref({}); 
-
 // Debounce for search input - updated logic
 let searchTimeout = null;
 const handleSearchInput = (event) => {
@@ -160,36 +130,6 @@ const handleSearchInput = (event) => {
     globalFilter.value = event.target.value; // Always update globalFilter
   }, 300); // 300ms debounce
 };
-
-
-const table = useVueTable({
-  data: data.value,
-  columns,
-  getCoreRowModel: getCoreRowModel(),
-  getFilteredRowModel: getFilteredRowModel(), // Enable filtering
-  // enableColumnResizing: false, // Removed completely
-  // columnResizeMode: 'onChange', // Removed completely
-  state: {
-    get globalFilter() {
-      return globalFilter.value;
-    },
-    // Removed columnSizing from state
-  },
-  onGlobalFilterChange: value => (globalFilter.value = value), // Re-enabled
-  // Removed onColumnSizingChange
-  // Custom filter function for case-insensitive and all-column search
-  globalFilterFn: (row, columnId, filterValue) => {
-    if (!filterValue || filterValue.length < 3) return true; // Only filter after 3 characters
-
-    const search = String(filterValue).toLowerCase();
-    return row.getVisibleCells().some(cell => {
-      const cellValue = String(cell.getValue()).toLowerCase();
-      return cellValue.includes(search);
-    });
-  },
-});
-
-// No need for watchEffect here, as `globalFilter` is now directly passed to the table state.
 </script>
 
 <style scoped>
@@ -216,55 +156,5 @@ const table = useVueTable({
   outline: none;
   border-color: var(--brand-blue);
   box-shadow: 0 0 0 2px rgba(var(--brand-blue), 0.2);
-}
-
-/* Resize handle styles - removed completely */
-/* .resize-handle {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 5px;
-  background: var(--brand-blue);
-  cursor: col-resize;
-  user-select: none;
-  touch-action: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-th:hover .resize-handle {
-  opacity: 1;
-}
-
-.resize-handle.is-resizing {
-  opacity: 1;
-  background: var(--brand-red);
-} */
-
-/* Table wrapper and container styles for single scrollbar */
-.products-container {
-  /* Removed overflow-y: visible from here to allow main page to scroll */
-}
-.table-wrapper {
-  max-height: none; /* Allow content to push page scrollbar */
-  overflow-y: visible; /* Prevent table from having its own scrollbar */
-  position: relative;
-  margin-top: 20px; /* Adjust margin between search bar and table */
-}
-
-/* New styles for text truncation */
-.data-table td {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px; /* Adjust as needed for column width */
-}
-
-/* Header cells also get truncation if they are too long */
-.data-table th div {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

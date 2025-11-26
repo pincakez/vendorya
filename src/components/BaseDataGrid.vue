@@ -1,103 +1,135 @@
-<script setup>
-import { ref, computed } from 'vue';
-import { 
-  useVueTable, 
-  getCoreRowModel, 
-  getPaginationRowModel, 
-  getFilteredRowModel,
-  getSortedRowModel,
-  flexRender 
-} from '@tanstack/vue-table';
-import { PhMagnifyingGlass, PhCaretUp, PhCaretDown, PhCaretUpDown } from "@phosphor-icons/vue";
-
-const props = defineProps({
-  data: Array,
-  columns: Array
-});
-
-const globalFilter = ref('');
-const pageSize = ref(30);
-
-const activeSearch = computed(() => {
-  return globalFilter.value.length >= 3 ? globalFilter.value : '';
-});
-
-const table = useVueTable({
-  get data() { return props.data },
-  get columns() { return props.columns },
-  getCoreRowModel: getCoreRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getSortedRowModel: getSortedRowModel(),
-  state: {
-    get globalFilter() { return activeSearch.value },
-    get pagination() { return { pageIndex: 0, pageSize: pageSize.value } }
-  },
-  onGlobalFilterChange: (val) => { globalFilter.value = val }
-});
-</script>
-
 <template>
-  <div class="grid-container">
-    <div class="grid-toolbar">
-      <div class="search-wrapper">
-        <PhMagnifyingGlass class="search-icon" />
-        <input v-model="globalFilter" type="text" placeholder="Inventory Search (Type /h for help)" class="search-input" />
-      </div>
-      <div class="pagination-controls">
-        <span class="page-info">Items per page:</span>
-        <select v-model="pageSize" class="page-select">
-          <option :value="30">30</option>
-          <option :value="40">40</option>
-          <option :value="50">50</option>
-        </select>
-      </div>
-    </div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-            <th v-for="header in headerGroup.headers" :key="header.id" @click="header.column.getToggleSortingHandler()?.($event)" class="grid-header">
-              <div class="header-content">
-                <component :is="flexRender(header.column.columnDef.header, header.getContext())" />
-                <span class="sort-icon" v-if="header.column.getCanSort()">
-                  <PhCaretUp v-if="header.column.getIsSorted() === 'asc'" />
-                  <PhCaretDown v-else-if="header.column.getIsSorted() === 'desc'" />
-                  <PhCaretUpDown v-else class="inactive-sort" />
-                </span>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in table.getRowModel().rows" :key="row.id" class="grid-row">
-            <td v-for="cell in row.getVisibleCells()" :key="cell.id" class="grid-cell">
-              <component :is="flexRender(cell.column.columnDef.cell, cell.getContext())" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="grid-footer">Showing {{ table.getRowModel().rows.length }} items</div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+          <th
+            v-for="header in headerGroup.headers"
+            :key="header.id"
+            :colSpan="header.colSpan"
+            :style="{ width: header.getSize() + 'px' }"
+          >
+            <template v-if="!header.isPlaceholder">
+              {{ header.column.columnDef.header }}
+            </template>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in table.getRowModel().rows" :key="row.id">
+          <td v-for="cell in row.getVisibleCells()" :key="cell.id">
+            {{ cell.getValue() }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
+<script setup>
+import { ref, watch } from 'vue';
+import {
+  useVueTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+} from '@tanstack/vue-table';
+
+const props = defineProps({
+  data: {
+    type: Array,
+    required: true,
+  },
+  columns: {
+    type: Array,
+    required: true,
+  },
+  globalFilterInput: {
+    type: String,
+    default: '',
+  },
+});
+
+const globalFilter = ref(props.globalFilterInput);
+
+watch(() => props.globalFilterInput, (newValue) => {
+  globalFilter.value = newValue;
+});
+
+const table = useVueTable({
+  data: props.data,
+  columns: props.columns,
+  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(), // Enable filtering
+  state: {
+    get globalFilter() {
+      return globalFilter.value;
+    },
+  },
+  onGlobalFilterChange: value => (globalFilter.value = value),
+  globalFilterFn: (row, columnId, filterValue) => {
+    if (!filterValue || filterValue.length < 3) return true;
+
+    const search = String(filterValue).toLowerCase();
+    return row.getVisibleCells().some(cell => {
+      const cellValue = String(cell.getValue()).toLowerCase();
+      return cellValue.includes(search);
+    });
+  },
+});
+</script>
+
 <style scoped>
-.grid-container { display: flex; flex-direction: column; gap: 16px; height: 100%; }
-.grid-toolbar { display: flex; justify-content: space-between; align-items: center; }
-.search-wrapper { position: relative; width: 400px; display: flex; align-items: center; }
-.search-icon { position: absolute; left: 12px; color: var(--brand-text-light); font-size: 18px; }
-.search-input { width: 100%; padding: 10px 12px 10px 40px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 14px; outline: none; transition: border 0.2s; }
-.search-input:focus { border-color: var(--brand-blue); }
-.table-wrapper { flex: 1; overflow: auto; background: white; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-.grid-header { text-align: left; padding: 16px; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--border-color); font-size: 12px; font-weight: 700; color: var(--brand-text-light); text-transform: uppercase; cursor: pointer; user-select: none; }
-.header-content { display: flex; align-items: center; gap: 8px; }
-.sort-icon { font-size: 14px; }
-.inactive-sort { opacity: 0.3; }
-.grid-row { border-bottom: 1px solid #f1f3f4; transition: background 0.1s; }
-.grid-row:hover { background: #f8f9fa; }
-.grid-cell { padding: 14px 16px; font-size: 14px; color: var(--brand-text); }
-.page-select { padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); }
-.grid-footer { font-size: 13px; color: var(--brand-text-light); text-align: right; }
+.table-wrapper {
+  overflow-x: auto; /* Enable horizontal scrolling for wide tables */
+  margin-top: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--brand-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.201);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: var(--brand-text);
+  min-width: 700px; /* Ensure table has a minimum width for scrolling */
+}
+
+.data-table thead {
+  background-color: var(--brand-blue); /* Use brand-blue for header background */
+  position: sticky;
+  top: 0;
+  z-index: 2; /* Keep header sticky on scroll */
+}
+
+.data-table th {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 600;
+  color: var(--brand-bg); /* Use brand-bg for header text */
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(var(--brand-blue), 0.05); /* Light hover effect */
+}
+
+.data-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px; /* Adjust as needed for column width */
+  padding: 10px 15px;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
 </style>
