@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { menuTree } from '../data/navigation';
 import { PhCaretLeft, PhCaretRight, PhPlus } from "@phosphor-icons/vue";
@@ -9,6 +9,7 @@ const isSidebarCollapsed = ref(false);
 const isActionsCollapsed = ref(false);
 const sidebarNav = ref(null);
 const subMenuBar = ref(null); // Ref for the sub-menu container
+const contentScrollable = ref(null); // Ref for the scrollable content area
 
 // Animation Refs
 const activeIndicatorStyle = ref({ top: '0px', opacity: 0 }); // Sidebar Elevator
@@ -62,6 +63,43 @@ watch(() => route.path, () => {
   updateElevator();
   updateSlider();
 }, { immediate: true });
+
+// --- AUTO-COLLAPSE ON SCROLL LOGIC ---
+let lastScrollTop = 0;
+let scrollTimeout = null;
+const SCROLL_THRESHOLD = 100; // Pixels to scroll before collapsing
+
+const handleScroll = () => {
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout);
+  }
+  scrollTimeout = setTimeout(() => {
+    if (!contentScrollable.value) return;
+
+    const currentScrollTop = contentScrollable.value.scrollTop;
+    const scrollDifference = Math.abs(currentScrollTop - lastScrollTop);
+
+    if (scrollDifference > SCROLL_THRESHOLD && !isActionsCollapsed.value) {
+      isActionsCollapsed.value = true;
+    }
+    lastScrollTop = currentScrollTop;
+  }, 100); // Debounce scroll event
+};
+
+onMounted(() => {
+  if (contentScrollable.value) {
+    contentScrollable.value.addEventListener('scroll', handleScroll);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (contentScrollable.value) {
+    contentScrollable.value.removeEventListener('scroll', handleScroll);
+  }
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout);
+  }
+});
 </script>
 
 <template>
@@ -112,16 +150,17 @@ watch(() => route.path, () => {
         <div class="sliding-line" :style="sliderStyle"></div>
       </div>
 
-      <main class="content-scrollable">
-        <div class="quick-actions-container">
-          <div v-if="!isActionsCollapsed" class="actions-group">
+      <main class="content-scrollable" ref="contentScrollable">
+        <div :class="['quick-actions-container', { collapsed: isActionsCollapsed }]">
+          <div class="actions-group">
             <button class="action-btn"><PhPlus weight="bold"/> New Invoice</button>
             <button class="action-btn"><PhPlus weight="bold"/> New Supplier</button>
             <button class="action-btn"><PhPlus weight="bold"/> New Item</button>
           </div>
           <button @click="toggleActions" class="collapse-btn">
-            <PhCaretRight v-if="isActionsCollapsed" />
-            <PhCaretLeft v-else />
+            <!-- The icon will now rotate with the button itself due to CSS transition on .collapse-btn -->
+            <PhCaretLeft v-if="!isActionsCollapsed" />
+            <PhCaretRight v-else />
           </button>
         </div>
         <div class="page-content">

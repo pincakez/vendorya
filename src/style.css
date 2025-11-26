@@ -110,35 +110,89 @@ body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--brand-b
   margin-bottom: 10px;
   pointer-events: none;
 }
-.actions-group { display: flex; gap: 8px; pointer-events: auto; }
-
-.action-btn {
-  background: var(--brand-green); color: white; border: none; height: 32px; padding: 0 14px;
-  border-radius: 12px; font-weight: 600; font-size: 13px; cursor: pointer;
-  display: flex; align-items: center; gap: 6px;
-  box-shadow: 0 4px 10px rgba(55, 167, 83, 0.3);
-  transition: all 0.2s ease;
+.actions-group {
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+  /* Removed: transition: all 0.3s ease-in-out; */
 }
-.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(55, 167, 83, 0.4); }
-.action-btn:active { transform: scale(0.95); }
 
+/* Base styles for action buttons */
+.action-btn {
+  background: var(--brand-green);
+  color: white;
+  border: none;
+  height: 32px;
+  padding: 0 14px; /* Default padding */
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.245);
+  /* Changed cubic-bezier for a more noticeable ease-in-out, kept duration for transform, max-width, and padding */
+  transition: background 0.2s, box-shadow 0.2s, transform 0.3s cubic-bezier(0.42, 0, 0.58, 1), opacity 0.3s ease-in-out, max-width 0.3s cubic-bezier(0.42, 0, 0.58, 1), padding 0.3s cubic-bezier(0.42, 0, 0.58, 1);
+  transform-origin: right center; /* Set transform origin for bubble effect */
+  max-width: 200px; /* Define a max-width for expanded state (arbitrary, adjust if needed) */
+  flex-shrink: 0; /* Prevent buttons from shrinking below content size when expanded */
+  white-space: nowrap; /* Prevent text wrapping when shrinking */
+}
+
+/* Hover and active states */
+.action-btn:hover { transform: translateY(-2px); box-shadow: -5px 6px 14px rgba(0, 0, 0, 0.245); }
+.action-btn:active { transform: scale(0.95); transform-origin: center center; } /* Explicitly set transform-origin for active state */
+
+/* Collapsed state for action buttons */
+.quick-actions-container.collapsed .action-btn {
+  opacity: 0;
+  transform: scale(0); /* Scale down to zero */
+  max-width: 0; /* Collapse width */
+  padding: 0; /* Remove padding to fully collapse */
+  margin-right: 0; /* Ensure no extra margin */
+  overflow: hidden; /* Hide overflowing content during transition */
+}
+
+/* Expanded state for action buttons (default visible state) */
+.quick-actions-container:not(.collapsed) .action-btn {
+  opacity: 1;
+  transform: scale(1); /* Scale up to original size */
+  max-width: 200px; /* Restore max-width */
+  padding: 0 14px; /* Restore padding */
+  margin-right: initial; /* Restore default margin */
+}
+
+/* Individual button delays for bubble effect */
+/* Expanding: First button shows first (left to right) */
+.quick-actions-container:not(.collapsed) .action-btn:nth-child(1) { transition-delay: 0s; }
+.quick-actions-container:not(.collapsed) .action-btn:nth-child(2) { transition-delay: 0.07s; } /* Slightly increased delay */
+.quick-actions-container:not(.collapsed) .action-btn:nth-child(3) { transition-delay: 0.14s; } /* Slightly increased delay */
+
+/* Collapsing: Last button disappears first (right to left) */
+.quick-actions-container.collapsed .action-btn:nth-child(1) { transition-delay: 0.14s; } /* Adjusted delay for reverse effect */
+.quick-actions-container.collapsed .action-btn:nth-child(2) { transition-delay: 0.07s; } /* Adjusted delay for reverse effect */
+.quick-actions-container.collapsed .action-btn:nth-child(3) { transition-delay: 0s; }
+
+/* Collapse/expand button */
 .collapse-btn {
-  pointer-events: auto; background: var(--brand-red); width: 32px; height: 32px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; border: none;
-  box-shadow: 0 4px 10px rgba(233, 71, 70, 0.3); transition: transform 0.2s;
+  pointer-events: auto;
+  background: var(--brand-red);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 10px rgba(233, 71, 70, 0.3);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Apply same bouncy easing */
+  transform: rotate(0deg); /* Explicitly set initial rotation */
 }
 .collapse-btn:hover { transform: scale(1.1); }
-
-/* --- BUBBLE ANIMATION (Chat Heads) --- */
-.bubble-enter-active { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.bubble-leave-active { transition: all 0.3s ease-in; }
-.bubble-enter-from { opacity: 0; transform: translateY(20px) scale(0.5); }
-.bubble-leave-to { opacity: 0; transform: translateX(20px) scale(0.5); }
-
-/* Stagger Delay */
-.actions-group button:nth-child(1) { transition-delay: 0.1s; }
-.actions-group button:nth-child(2) { transition-delay: 0.05s; }
-.actions-group button:nth-child(3) { transition-delay: 0s; }
+.quick-actions-container.collapsed .collapse-btn { transform: rotate(180deg); } /* Rotate 180 degrees when collapsed */
 
 /* --- PAGE CONTENT --- */
 .page-content { padding: 24px; }
