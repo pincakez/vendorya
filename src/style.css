@@ -60,7 +60,30 @@ body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--brand-b
   border-radius: 30px 0 0 30px; position: relative; z-index: 2; transition: color 0.25s linear; height: 48px;
 }
 .nav-item:hover { background: rgba(255,255,255,0.1); }
-.nav-item.active-target { color: var(--brand-blue) !important; font-weight: 700; background: transparent !important; }
+.nav-item {
+  display: flex; align-items: center; gap: 16px; padding: 12px 24px; margin: 4px 0 4px 12px;
+  color: rgba(255,255,255,0.9); text-decoration: none; font-weight: 500; font-size: 15px;
+  border-radius: 30px 0 0 30px; position: relative; z-index: 2; height: 48px;
+  transition: color 0.25s linear, transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease;
+}
+.nav-item:hover:not(.active-target) { /* Hover effect ONLY for non-active nav items */
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px); /* Slight lift on hover */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Keep a subtle shadow on hover */
+}
+.nav-item:active:not(.active-target) { /* Clicking effect ONLY for non-active nav items */
+  transform: scale(0.995) translateY(0.25px); /* Even subtler scale down and move down for "pressed" feel */
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4); /* Tighter, slightly darker inset shadow for deeper feel */
+  background: rgba(255,255,255,0.02); /* Very subtle background shift on click */
+}
+.nav-item.active-target {
+  color: var(--brand-blue) !important;
+  font-weight: 700;
+  background: transparent !important;
+  /* Active target should only have its base styling, no transform or box-shadow */
+  transform: none;
+  box-shadow: none;
+}
 .nav-icon { font-size: 22px; min-width: 22px; }
 .sidebar-toggle { margin-top: auto; background: none; border: none; color: white; padding: 16px 24px; cursor: pointer; display: flex; align-items: center; font-size: 14px; }
 
@@ -69,21 +92,31 @@ body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--brand-b
 
 .top-header {
   height: var(--header-height);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
+  background: var(--brand-bg); /* Made opaque */
+  backdrop-filter: blur(12px); /* Keep for visual effect but ensure background is solid */
   border-bottom: 1px solid var(--border-color);
   display: flex; align-items: center; padding: 0 24px;
+  position: sticky;
+  top: 0;
   z-index: 50;
 }
 
 /* --- SUB-MENU (Clean - No Border) --- */
 .sub-menu-bar {
   height: var(--subheader-height);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
+  background: var(--brand-bg); /* Made opaque */
+  backdrop-filter: blur(12px); /* Keep for visual effect but ensure background is solid */
   /* border-bottom: 1px solid var(--border-color);  <-- REMOVED THIS */
   display: flex; align-items: center; padding: 0 24px; padding-left: 40px; gap: 24px;
-  position: relative; z-index: 40;
+  position: sticky;
+  top: var(--header-height);
+  z-index: 55; /* Increased z-index to appear above top-header when scrolled */
+  transition: box-shadow 0.3s ease-in-out, border-bottom 0.3s ease-in-out; /* Add transition for border-bottom */
+  border-bottom: 1px solid transparent; /* Default transparent border */
+}
+.sub-menu-bar.has-shadow {
+  box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.1); /* More prominent shadow for testing */
+  border-bottom: 1px solid var(--border-color); /* Add visible border when shadow is active */
 }
 .sub-menu-link { text-decoration: none; color: var(--brand-text-light); font-weight: 500; font-size: 13px; height: 100%; display: flex; align-items: center; border-bottom: none; transition: color 0.2s ease; z-index: 2; }
 .sub-menu-link:hover { color: var(--brand-blue); }

@@ -7,6 +7,7 @@ import { PhCaretLeft, PhCaretRight, PhPlus } from "@phosphor-icons/vue";
 const route = useRoute();
 const isSidebarCollapsed = ref(false);
 const isActionsCollapsed = ref(false);
+const showSubMenuShadow = ref(false); // New ref for sub-menu shadow
 const sidebarNav = ref(null);
 const subMenuBar = ref(null);
 
@@ -17,10 +18,21 @@ const sliderStyle = ref({ left: '0px', width: '0px', opacity: 0 });
 const toggleSidebar = () => isSidebarCollapsed.value = !isSidebarCollapsed.value;
 const toggleActions = () => isActionsCollapsed.value = !isActionsCollapsed.value;
 
-// --- SCROLL LOGIC (Auto Collapse) ---
+// --- SCROLL LOGIC (Auto Collapse & Shadow) ---
 const handleScroll = (e) => {
-  if (e.target.scrollTop > 50 && !isActionsCollapsed.value) {
+  const scrollTop = e.target.scrollTop;
+  // Auto collapse quick actions
+  if (scrollTop > 50 && !isActionsCollapsed.value) {
     isActionsCollapsed.value = true;
+  } else if (scrollTop <= 50 && isActionsCollapsed.value) {
+    isActionsCollapsed.value = false;
+  }
+
+  // Sub-menu shadow
+  if (scrollTop > 200 && !showSubMenuShadow.value) { // Show shadow after 200px scroll
+    showSubMenuShadow.value = true;
+  } else if (scrollTop <= 200 && showSubMenuShadow.value) { // Hide shadow when scrolled up
+    showSubMenuShadow.value = false;
   }
 };
 
@@ -103,7 +115,11 @@ watch(() => route.path, () => {
         <div class="header-left">Header Content (Search, Profile)</div>
       </header>
 
-      <div class="sub-menu-bar" v-if="currentSubMenus.length > 0" ref="subMenuBar">
+      <div 
+        :class="['sub-menu-bar', { 'has-shadow': showSubMenuShadow }]" 
+        v-if="currentSubMenus.length > 0" 
+        ref="subMenuBar"
+      >
         <RouterLink 
           v-for="(sub, index) in currentSubMenus" 
           :key="index" 
